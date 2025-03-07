@@ -1,48 +1,23 @@
 # -*- coding: utf-8 -*-
-import aiofiles
 import disnake
-
 from disnake.ext import commands
-from utils.client import BotCore
-from utils.others import CustomContext
 
-class AI(commands.Cog):
-
-    emoji = "🤖"
-    name = "IA Generativa"
-    desc_prefix = f"[{emoji} {name}] | "
-
-    def __init__(self, bot: BotCore):
+class IA(commands.Cog):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    about_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.member)
-
-    @commands.command(name="mentecapto", aliases=["test", "tes", "tesao"], description="maracutaia.", cooldown=about_cd)      
-    async def tes(self, ctx: CustomContext):
-        await self.about.callback(self=self, interaction=ctx)
-        print(f"🎉 - Bota na calcinha preta")
-
-    @commands.slash_command(
-        description=f"{desc_prefix} abubuie",
-        extras={"allow_private": True}
-    )
-
     @commands.Cog.listener()
-    async def tescog(self):
-        print(f"escomungado")
+    async def on_message(self, message: disnake.Message):
+        if message.author.bot:
+            return
 
-        try:
-            channel = guild.system_channel if guild.system_channel.permissions_for(guild.me).send_messages else None
-        except AttributeError:
-            channel = None
+        # Exemplo: se a mensagem contiver "oi bot", o bot responderá
+        if "oi bot" in message.content.lower():
+            await message.channel.send(f"Olá, {message.author.mention}! Como posso ajudar?")
 
-        try:
-            await channel.send(f"Confira o meu pau demonstrando essa funcionalidade.")
-        except:
-            print(f"Falha ao enviar mensagem de novo servidor no canal: {channel}\n"
-                f"ID do canal: {channel.id}\n"
-                f"Tipo de canal: {type(channel)}\n")
+    @commands.command(name="bora", help="Responde com 'bill!' para testar a conexão.")
+    async def ping(self, ctx: commands.Context):
+        await ctx.send("BIIILLL!")
 
-
-def setup(bot: BotCore):
-    bot.add_cog(AI(bot))
+def setup(bot: commands.Bot):
+    bot.add_cog(IA(bot))
