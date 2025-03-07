@@ -4,7 +4,7 @@ import disnake
 
 from disnake.ext import commands
 from utils.client import BotCore
-
+from utils.others import CustomContext
 
 class AI(commands.Cog):
 
@@ -17,8 +17,9 @@ class AI(commands.Cog):
 
     about_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.member)
 
-    @commands.command(name="mentecapto", aliases=["test", "tes", "tesao"], description="maracutaia.", cooldown=about_cd)
-    async def tes():
+    @commands.command(name="mentecapto", aliases=["test", "tes", "tesao"], description="maracutaia.", cooldown=about_cd)      
+    async def tes(self, ctx: CustomContext):
+        await self.about.callback(self=self, interaction=ctx)
         print(f"🎉 - Bota na calcinha preta")
 
     @commands.slash_command(
