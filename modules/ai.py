@@ -26,7 +26,6 @@ class AI(commands.Cog):
 
     @commands.Cog.listener()
     async def tescog(self):
-
         print(f"escomungado")
 
 
