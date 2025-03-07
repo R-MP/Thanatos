@@ -15,7 +15,9 @@ class AI(commands.Cog):
     def __init__(self, bot: BotCore):
         self.bot = bot
 
-    @commands.command(name="mentecapto", aliases=["test", "tes", "tesao"], description="maracutaia.")
+    about_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.member)
+
+    @commands.command(name="mentecapto", aliases=["test", "tes", "tesao"], description="maracutaia.", cooldown=about_cd)
     async def tes():
         print(f"🎉 - Bota na calcinha preta")
 
