@@ -31,6 +31,17 @@ class AI(commands.Cog):
     async def tescog(self):
         print(f"escomungado")
 
+        try:
+            channel = guild.system_channel if guild.system_channel.permissions_for(guild.me).send_messages else None
+        except AttributeError:
+            channel = None
+
+        try:
+            await channel.send(f"Confira o meu pau demonstrando essa funcionalidade.")
+        except:
+            print(f"Falha ao enviar mensagem de novo servidor no canal: {channel}\n"
+                f"ID do canal: {channel.id}\n"
+                f"Tipo de canal: {type(channel)}\n")
 
 
 def setup(bot: BotCore):
