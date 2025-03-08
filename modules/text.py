@@ -4,7 +4,7 @@ import random
 import disnake
 from disnake.ext import commands
 
-class IA(commands.Cog):
+class Text(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -19,7 +19,7 @@ class IA(commands.Cog):
     @commands.command(name="ASCII", help="mostra uma arte em ASCII aléatoria.")
     async def ascii(self, ctx: commands.Context):
         try:
-            with open("../data/ascii.py", "r", encoding="utf-8") as file:
+            with open("root/data/ascii.py", "r", encoding="utf-8") as file:
                 content = file.read()
 
             pattern = re.compile(r'^\s*(\w+)\s*=\s*([\'"])(.*?)\2\s*$', re.MULTILINE)
@@ -35,4 +35,4 @@ class IA(commands.Cog):
             await ctx.send("Arquivo do banco de dados ASCII não disponível.")
 
 def setup(bot: commands.Bot):
-    bot.add_cog(IA(bot))
+    bot.add_cog(Text(bot))
