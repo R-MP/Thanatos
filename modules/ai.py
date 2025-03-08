@@ -19,7 +19,7 @@ class IA(commands.Cog):
     @commands.command(name="ASCII", help="mostra uma arte em ASCII aléatoria.")
     async def ascii(self, ctx: commands.Context):
         try:
-            with open("../data/ascii.txt", "r", encoding="utf-8") as file:
+            with open("../data/ascii.py", "r", encoding="utf-8") as file:
                 content = file.read()
 
             pattern = re.compile(r'^\s*(\w+)\s*=\s*([\'"])(.*?)\2\s*$', re.MULTILINE)
