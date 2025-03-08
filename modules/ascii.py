@@ -17,7 +17,7 @@ def image_to_ascii(image, new_width=80):
         image = image.convert("L")
         pixels = image.getdata()
         
-        ascii_chars = [".", ",", ":", ";", "=", "o", "+", "*", "?", "%", "F", "S", "H", "#", "O"."@"]
+        ascii_chars = [".", ",", ":", ";", "=", "o", "+", "*", "?", "%", "F", "S", "H", "#", "O", "@"]
         ascii_str = ""
         for i, pixel in enumerate(pixels):
             ascii_str += ascii_chars[pixel * len(ascii_chars) // 256]
