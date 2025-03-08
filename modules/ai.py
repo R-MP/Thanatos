@@ -30,7 +30,7 @@ class IA(commands.Cog):
                 selected_value = random.choice(values)
                 await ctx.send(selected_value)
             else:
-                await ctx.send("Nenhum ascii cadastrado.")
+                await ctx.send("Nenhum ASCII cadastrado.")
         except FileNotFoundError:
             await ctx.send("Arquivo do banco de dados ASCII não disponível.")
 
