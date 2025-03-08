@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import re
+import random
 import disnake
 from disnake.ext import commands
 
@@ -11,13 +13,26 @@ class IA(commands.Cog):
         if message.author.bot:
             return
 
-        # Exemplo: se a mensagem contiver "oi bot", o bot responderá
-        if "oi bot" in message.content.lower():
+        if "thanatin" in message.content.lower():
             await message.channel.send(f"Olá, {message.author.mention}! Como posso ajudar?")
 
-    @commands.command(name="bora", help="Responde com 'bill!' para testar a conexão.")
-    async def ping(self, ctx: commands.Context):
-        await ctx.send("BIIILLL!")
+    @commands.command(name="ASCII", help="mostra uma arte em ASCII aléatoria.")
+    async def ascii(self, ctx: commands.Context):
+        try:
+            with open("../data/ascii.txt", "r", encoding="utf-8") as file:
+                content = file.read()
+
+            pattern = re.compile(r'^\s*(\w+)\s*=\s*([\'"])(.*?)\2\s*$', re.MULTILINE)
+            matches = pattern.findall(content)
+
+            if matches:
+                values = [match[2] for match in matches]
+                selected_value = random.choice(values)
+                await ctx.send(selected_value)
+            else:
+                await ctx.send("Nenhum ascii cadastrado.")
+        except FileNotFoundError:
+            await ctx.send("Arquivo do banco de dados ASCII não disponível.")
 
 def setup(bot: commands.Bot):
     bot.add_cog(IA(bot))
