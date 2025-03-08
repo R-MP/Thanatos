@@ -74,10 +74,8 @@ class ASCII(commands.Cog):
         except Exception:
             return await ctx.send("Erro ao abrir a imagem.")
 
-
-        # Converte a imagem para ASCII
         ascii_text = image_to_ascii(img, new_width=80)
-        # Se o resultado for muito grande, envia como arquivo; caso contrário, envia em um bloco de código
+        
         if len(ascii_text) > 1900:
             bio = BytesIO(ascii_text.encode('utf-8'))
             await ctx.send(file=disnake.File(bio, "ascii.txt"))
@@ -86,15 +84,12 @@ class ASCII(commands.Cog):
         
     @commands.command(name="saveasc", help="Salva o último ASCII exibido no chat no banco de dados. (Use: saveasc nome_da_variavel)")
     async def saveascii(self, ctx: commands.Context, var_name: str):
-        # Verifica se o nome fornecido é um identificador Python válido
         if not var_name.isidentifier():
             return await ctx.send("O nome da variável deve ser um identificador Python válido.")
 
-        # Busca no histórico do canal a última mensagem enviada pelo bot que contenha um bloco de código (```)
         ascii_text = None
         async for message in ctx.channel.history(limit=20):
             if message.author.id == self.bot.user.id and "```" in message.content:
-                # Tenta extrair o conteúdo entre as crases
                 match = re.search(r"```(?:\w*\n)?(.*?)```", message.content, re.DOTALL)
                 if match:
                     ascii_text = match.group(1).strip()
@@ -103,7 +98,6 @@ class ASCII(commands.Cog):
         if not ascii_text:
             return await ctx.send("Não encontrei nenhum ASCII no chat para salvar.")
 
-        # Salva a arte ASCII no arquivo data/ascii.py como uma nova variável
         try:
             with open("data/ascii_db.py", "a", encoding="utf-8") as file:
                 file.write("\n\n")
