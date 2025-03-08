@@ -79,7 +79,7 @@ class ASCII(commands.Cog):
 
         ascii_text = image_to_ascii(img, new_width=new_width)
         
-        if "-file" in ctx.message.content.lower() or len(ascii_text) >= 2000::
+        if "-file" in ctx.message.content.lower() or len(ascii_text) >= 2000:
             bio = BytesIO(ascii_text.encode('utf-8'))
             await ctx.send(file=disnake.File(bio, "ascii.txt"))
         else:
