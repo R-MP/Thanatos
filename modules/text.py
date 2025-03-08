@@ -2,6 +2,7 @@
 import re
 import random
 import disnake
+from data import ascii as ascii_module
 from disnake.ext import commands
 
 class Text(commands.Cog):
@@ -18,21 +19,17 @@ class Text(commands.Cog):
 
     @commands.command(name="ASCII", help="mostra uma arte em ASCII aléatoria.")
     async def ascii(self, ctx: commands.Context):
-        try:
-            with open("root/data/ascii.py", "r", encoding="utf-8") as file:
-                content = file.read()
-
-            pattern = re.compile(r'^\s*(\w+)\s*=\s*([\'"])(.*?)\2\s*$', re.MULTILINE)
-            matches = pattern.findall(content)
-
-            if matches:
-                values = [match[2] for match in matches]
-                selected_value = random.choice(values)
-                await ctx.send(selected_value)
-            else:
-                await ctx.send("Nenhum ASCII cadastrado.")
-        except FileNotFoundError:
-            await ctx.send("Arquivo do banco de dados ASCII não disponível.")
+        ascii_list = [
+            getattr(ascii_module, attr)
+            for attr in dir(ascii_module)
+            if not attr.startswith("__") and isinstance(getattr(ascii_module, attr), str)
+        ]
+        
+        if ascii_list:
+            selected_value = random.choice(ascii_list)
+            await ctx.send(f"```\n{selected_value}\n```")
+        else:
+            await ctx.send("Nenhum ASCII encontrado no módulo.")
 
 def setup(bot: commands.Bot):
     bot.add_cog(Text(bot))
