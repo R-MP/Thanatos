@@ -11,6 +11,23 @@ class Text(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    def image_to_ascii(image, new_width=80):
+        width, height = image.size
+        aspect_ratio = height / width
+        new_height = int(aspect_ratio * new_width * 0.55)
+        
+        image = image.resize((new_width, new_height))
+        image = image.convert("L")
+        pixels = image.getdata()
+        
+        ascii_chars = ["@", "#", "S", "%", "?", "*", "+", ";", ":", ",", "."]
+        ascii_str = ""
+        for i, pixel in enumerate(pixels):
+            ascii_str += ascii_chars[pixel * len(ascii_chars) // 256]
+            if (i + 1) % new_width == 0:
+                ascii_str += "\n"
+        return ascii_str
+
     @commands.Cog.listener()
     async def on_message(self, message: disnake.Message):
         if message.author.bot:
@@ -18,20 +35,6 @@ class Text(commands.Cog):
 
         if "thanatin" in message.content.lower():
             await message.channel.send(f"Olá, {message.author.mention}! Como posso ajudar?")
-
-    @commands.command(name="ascii", help="mostra uma arte em ASCII aléatoria.")
-    async def ascii(self, ctx: commands.Context):
-        ascii_list = [
-            getattr(ascii_module, attr)
-            for attr in dir(ascii_module)
-            if not attr.startswith("__") and isinstance(getattr(ascii_module, attr), str)
-        ]
-        
-        if ascii_list:
-            selected_value = random.choice(ascii_list)
-            await ctx.send(f"```\n{selected_value}\n```")
-        else:
-            await ctx.send("Nenhum ASCII encontrado no módulo.")
 
     @commands.command(name="ASCII", help="Mostra uma arte em ASCII aleatória a partir do módulo.")
     async def ascii(self, ctx: commands.Context):
