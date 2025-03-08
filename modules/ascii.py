@@ -104,7 +104,6 @@ class ASCII(commands.Cog):
         try:
             with open("data/ascii_db.py", "a", encoding="utf-8") as file:
                 file.write("\n\n")
-                # Utiliza aspas triplas para preservar a formatação
                 file.write(f"{var_name} = '''\n{ascii_text}\n'''")
         except Exception as e:
             return await ctx.send("Erro ao salvar a variável no arquivo.")
