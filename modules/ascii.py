@@ -74,9 +74,12 @@ class ASCII(commands.Cog):
         except Exception:
             return await ctx.send("Erro ao abrir a imagem.")
 
-        ascii_text = image_to_ascii(img, new_width=80)
+        width_match = re.search(r'-w(\d+)', ctx.message.content.lower())
+        new_width = int(width_match.group(1)) if width_match else 80
+
+        ascii_text = image_to_ascii(img, new_width=new_width)
         
-        if len(ascii_text) > 1900:
+        if "-file" in ctx.message.content.lower():
             bio = BytesIO(ascii_text.encode('utf-8'))
             await ctx.send(file=disnake.File(bio, "ascii.txt"))
         else:
