@@ -17,7 +17,7 @@ def image_to_ascii(image, new_width=80):
         image = image.convert("L")
         pixels = image.getdata()
         
-        ascii_chars = ["@", "#", "S", "%", "?", "*", "+", ";", ":", ",", "."]
+        ascii_chars = [".", ",", ":", ";", "=", "o", "+", "*", "?", "%", "F", "S", "H", "#", "O"."@"]
         ascii_str = ""
         for i, pixel in enumerate(pixels):
             ascii_str += ascii_chars[pixel * len(ascii_chars) // 256]
@@ -37,7 +37,7 @@ class ASCII(commands.Cog):
         if "thanatin" in message.content.lower():
             await message.channel.send(f"Olá, {message.author.mention}! Como posso ajudar?")
 
-    @commands.command(name="ASCII", help="Mostra uma arte em ASCII aleatória a partir do módulo.")
+    @commands.command(name="ASCII", aliases=["as", "ascii"], help="Mostra uma arte em ASCII aleatória a partir do módulo.")
     async def ascii(self, ctx: commands.Context):
         ascii_list = [
             getattr(ascii_module, attr)
@@ -51,7 +51,7 @@ class ASCII(commands.Cog):
         else:
             await ctx.send("Nenhum ASCII encontrado no módulo.")
 
-    @commands.command(name="ascimg", help="Converte uma imagem em ASCII. Use uma imagem anexada ou forneça um URL.")
+    @commands.command(name="ascimg", aliases=["asim", "imgasc", "asciiimage", "imageascii"], help="Converte uma imagem em ASCII. Use uma imagem anexada ou forneça um URL.")
     async def asciiimg(self, ctx: commands.Context, url: str = None):
         
         if not url:
