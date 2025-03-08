@@ -3,7 +3,7 @@ import re
 import random
 import disnake
 import aiohttp
-from data import asciidb as ascii_module
+from data import ascii as ascii_module
 from disnake.ext import commands
 from io import BytesIO
 from PIL import Image
