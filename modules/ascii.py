@@ -3,15 +3,12 @@ import re
 import random
 import disnake
 import aiohttp
-from data import ascii as ascii_module
+from data import ascii_db as ascii_module
 from disnake.ext import commands
 from io import BytesIO
 from PIL import Image
-class Text(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
-    def image_to_ascii(image, new_width=80):
+def image_to_ascii(image, new_width=80):
         width, height = image.size
         aspect_ratio = height / width
         new_height = int(aspect_ratio * new_width * 0.55)
@@ -27,6 +24,10 @@ class Text(commands.Cog):
             if (i + 1) % new_width == 0:
                 ascii_str += "\n"
         return ascii_str
+
+class ASCII(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
     @commands.Cog.listener()
     async def on_message(self, message: disnake.Message):
@@ -104,7 +105,7 @@ class Text(commands.Cog):
 
         # Salva a arte ASCII no arquivo data/ascii.py como uma nova variável
         try:
-            with open("data/ascii.py", "a", encoding="utf-8") as file:
+            with open("data/ascii_db.py", "a", encoding="utf-8") as file:
                 file.write("\n\n")
                 # Utiliza aspas triplas para preservar a formatação
                 file.write(f"{var_name} = '''\n{ascii_text}\n'''")
@@ -114,4 +115,4 @@ class Text(commands.Cog):
         await ctx.send(f"ASCII salvo como variável `{var_name}` em `data/ascii.py`.")
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Text(bot))
+    bot.add_cog(ASCII(bot))
