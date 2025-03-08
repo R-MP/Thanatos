@@ -37,7 +37,7 @@ class ASCII(commands.Cog):
         if "thanatin" in message.content.lower():
             await message.channel.send(f"Olá, {message.author.mention}!")
 
-    @commands.command(name="ASCII", aliases=["as", "ascii"], help="Mostra uma arte em ASCII aleatória a partir do módulo.")
+    @commands.command(name="ASCII", aliases=["as"], help="Mostra uma arte em ASCII aleatória a partir do módulo.")
     async def ascii(self, ctx: commands.Context):
         ascii_list = [
             getattr(ascii_module, attr)
@@ -102,7 +102,7 @@ class ASCII(commands.Cog):
             return await ctx.send("Não encontrei nenhum ASCII no chat para salvar.")
 
         try:
-            with open("data/ascii_db.py", "a", encoding="utf-8") as file:
+            with open("data/ascii.py", "a", encoding="utf-8") as file:
                 file.write("\n\n")
                 file.write(f"{var_name} = '''\n{ascii_text}\n'''")
         except Exception as e:
