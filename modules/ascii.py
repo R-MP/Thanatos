@@ -37,7 +37,7 @@ class ASCII(commands.Cog):
         if "thanatin" in message.content.lower():
             await message.channel.send(f"Olá, {message.author.mention}!")
 
-    @commands.command(name="ASCII", aliases=["as"], help="Mostra uma arte em ASCII aleatória a partir do módulo.")
+    @commands.command(name="ASCII", aliases=["as", "asc"], help="Mostra uma arte em ASCII aleatória a partir do módulo.")
     async def ascii(self, ctx: commands.Context):
         ascii_list = [
             getattr(ascii_module, attr)
@@ -108,7 +108,7 @@ class ASCII(commands.Cog):
         except Exception as e:
             return await ctx.send("Erro ao salvar a variável no arquivo.")
 
-        await ctx.send(f"ASCII salvo como variável `{var_name}` em `data/ascii.py`.")
+        await ctx.send(f"ASCII salvo como variável `{var_name}` na memória.")
 
 def setup(bot: commands.Bot):
     bot.add_cog(ASCII(bot))
