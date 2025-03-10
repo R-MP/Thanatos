@@ -1,5 +1,6 @@
 disnake==2.10.1
 Pillow
+PyNaCl
 python-dotenv
 user_agent
 requests>=2.31.0
