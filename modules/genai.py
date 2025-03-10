@@ -6,7 +6,9 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-client = OpenAI(os.getenv("API_KEY"))
+
+api_key = os.getenv("API_KEY")
+client = OpenAI(api_key)
 
 class IA(commands.Cog):
     def __init__(self, bot: commands.Bot):
