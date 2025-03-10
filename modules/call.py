@@ -91,7 +91,7 @@ class Soundpad(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="playsound", help="Exibe um dropdown dinâmico com os sons disponíveis na pasta 'data/sounds'.")
+    @commands.command(name="soundpad", help="Exibe um dropdown dinâmico com os sons disponíveis na database.")
     async def playsound(self, ctx: commands.Context):
         # Carrega os sons do diretório (ajuste o caminho conforme necessário)
         sounds = load_sounds("data/soundpad")
@@ -99,6 +99,38 @@ class Soundpad(commands.Cog):
             return await ctx.send("Nenhum som encontrado na pasta.")
         view = SoundView(sounds)
         await ctx.send("Escolha um som para tocar:", view=view)
+
+    @commands.command(name="savesound", help="Adiciona um novo som. Use: savesound [nome opcional] com um arquivo anexo.")
+    async def savesound(self, ctx: commands.Context, sound_name: str = None):
+        # Verifica se há um arquivo anexo
+        if not ctx.message.attachments:
+            return await ctx.send("Envie um arquivo de som anexo.")
+        
+        attachment = ctx.message.attachments[0]
+        # Verifica se o arquivo possui uma extensão de áudio suportada
+        if not attachment.filename.lower().endswith((".mp3", ".wav", ".ogg")):
+            return await ctx.send("Formato de arquivo não suportado. Use mp3, wav ou ogg.")
+
+        # Se o nome do som não foi informado, utiliza o nome do arquivo (sem extensão)
+        if not sound_name:
+            sound_name = os.path.splitext(attachment.filename)[0]
+
+        # Define o diretório onde os sons serão salvos (cria se não existir)
+        directory = "data/soundpad"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        # Constrói o caminho do arquivo, preservando a extensão original
+        _, ext = os.path.splitext(attachment.filename)
+        file_path = os.path.join(directory, sound_name + ext)
+
+        try:
+            # Salva o arquivo enviado
+            await attachment.save(file_path)
+        except Exception as e:
+            return await ctx.send(f"Erro ao salvar o som: {e}")
+
+        await ctx.send(f"Som salvo com sucesso como `{sound_name}`.")
 
 def setup(bot: commands.Bot):
     bot.add_cog(Soundpad(bot))
