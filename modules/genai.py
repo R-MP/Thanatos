@@ -2,8 +2,11 @@ import asyncio
 import disnake
 from disnake.ext import commands
 from openai import OpenAI
+import os
+from dotenv import load_dotenv
 
-client = OpenAI()
+load_dotenv()
+client = OpenAI(os.getenv("API_KEY"))
 
 class IA(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -52,7 +55,7 @@ class IA(commands.Cog):
             )
 
             ai_response = ai_request.choices[0].message
-            
+
             try:
                 await message.channel.send(ai_response)
             except Exception as e:
