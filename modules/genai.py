@@ -98,6 +98,7 @@ class IA(commands.Cog):
         except Exception as e:
             await ctx.send("Erro ao gerar TTS.")
             await vc.disconnect()
+            print(Exception)
             return
 
         # Cria a fonte de áudio para reprodução
