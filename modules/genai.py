@@ -51,6 +51,10 @@ class IA(commands.Cog):
         # Ignora mensagens de bots
         if message.author.bot:
             return
+        
+        ctx = await self.bot.get_context(message)
+        if ctx.valid and ctx.command is not None:
+            return
         # Se o modo IA estiver ativo, responde a todas as mensagens
         if self.active:
             ai_request = client.chat.completions.create(
@@ -58,7 +62,7 @@ class IA(commands.Cog):
                 messages=[{"role": "user", "content": f"{message.content}"}]
             )
 
-            ai_response = ai_request.choices[0].message
+            ai_response = ai_request.choices[0].message.content
 
             try:
                 await message.channel.send(ai_response)
