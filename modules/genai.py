@@ -72,7 +72,7 @@ class IA(commands.Cog):
                 print("Erro ao enviar resposta de IA:", e)
 
     @commands.command(name="tts", help="Converte texto em áudio TTS e toca no canal de voz.")
-    async def tts_command(self, ctx: commands.Context, *, text: str):
+    async def tts_command(self, ctx: commands.Context, *, tts_text: str):
         # Verifica se o usuário está em um canal de voz
         if not ctx.author.voice:
             return await ctx.send("Você precisa estar em um canal de voz para usar esse comando.")
@@ -92,13 +92,14 @@ class IA(commands.Cog):
             response = openai.audio.speech.create(
                 model="tts-1",
                 voice="alloy",
-                input=text,
+                input=tts_text,
             )
             response.stream_to_file(speech_file_path)
         except Exception as e:
             await ctx.send("Erro ao gerar TTS.")
             await vc.disconnect()
-            print(Exception)
+            print(tts_text)
+            print(speech_file_path)
             return
 
         # Cria a fonte de áudio para reprodução
