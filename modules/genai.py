@@ -91,7 +91,7 @@ class IA(commands.Cog):
         try:
             response = openai.audio.speech.create(
                 model="tts-1",
-                voice="alloy",
+                voice="sage",
                 input=tts_text,
             )
             response.stream_to_file(speech_file_path)
