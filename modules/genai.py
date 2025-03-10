@@ -1,14 +1,16 @@
 import asyncio
 import disnake
 from disnake.ext import commands
-from openai import OpenAI
+import openai
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 api_key = os.getenv("API_KEY")
-client = OpenAI(api_key)
+openai.api_key = api_key
+
+client = openai
 
 class IA(commands.Cog):
     def __init__(self, bot: commands.Bot):
