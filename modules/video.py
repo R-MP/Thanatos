@@ -19,7 +19,7 @@ def convert_frame_to_ascii(frame, width=80):
     # Converte para escala de cinza
     gray = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
     # Mapeamento de níveis de cinza para caracteres ASCII (do mais escuro para o mais claro)
-    ascii_chars = " .:-=+*#%@"  
+    ascii_chars = " .:-=+*#%@"
     ascii_str = ""
     for pixel in gray.flatten():
         ascii_str += ascii_chars[int(pixel) * len(ascii_chars) // 256]
@@ -58,7 +58,7 @@ class VideoASCIICog(commands.Cog):
     async def apple(self, ctx: commands.Context):
         video_path = "data/video/badapple.mp4"
 
-        # Apaga a mensagem do comando, se desejar
+        # Apaga a mensagem do comando, se desejado
         try:
             await ctx.message.delete()
         except Exception:
@@ -80,18 +80,24 @@ class VideoASCIICog(commands.Cog):
         else:
             await ctx.send("Frames pré-processados encontrados. Iniciando reprodução...")
 
-        # Carrega os frames já processados (arquivos .txt)
+        # Carrega os frames já processados (arquivos .txt) e pré-carrega em memória
         frame_files = sorted([os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith('.txt')])
         if not frame_files:
             return await ctx.send("Nenhum frame encontrado para reprodução.")
 
-        # Envia uma mensagem inicial que será editada com os frames
-        message = await ctx.send("```\nCarregando frames...\n```")
+        ascii_frames = []
         for frame_file in frame_files:
             try:
                 with open(frame_file, "r", encoding="utf-8") as f:
-                    content = f.read()
-                await message.edit(content=f"```\n{content}\n```")
+                    ascii_frames.append(f.read())
+            except Exception as e:
+                print(f"Erro ao ler o arquivo {frame_file}: {e}")
+
+        # Envia uma mensagem inicial que será editada com os frames
+        message = await ctx.send("```\nCarregando frames...\n```")
+        for frame in ascii_frames:
+            try:
+                await message.edit(content=f"```\n{frame}\n```")
                 await asyncio.sleep(delay)
             except Exception as e:
                 print("Erro ao editar mensagem:", e)
