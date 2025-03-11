@@ -5,7 +5,7 @@ import openai
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from disnake import FFmpegPCMAudio
+from disnake import FFmpegPCMAudio, PCMVolumeTransformer
 
 load_dotenv()
 
@@ -104,6 +104,8 @@ class IA(commands.Cog):
 
         # Cria a fonte de áudio para reprodução
         audio_source = FFmpegPCMAudio(str(speech_file_path))
+        audio_source = PCMVolumeTransformer(audio_source)
+        audio_source.volume = 2.0  # 200% do volume padrão
 
         # Função callback para desconectar e deletar o arquivo após a reprodução
         def after_playing(error):
