@@ -20,7 +20,7 @@ def convert_frame_to_ascii(frame, width=80):
     ascii_chars = " .:-=+*#%@"
     ascii_frame = ""
     for pixel in gray.flatten():
-        ascii_frame += ascii_chars[pixel * len(ascii_chars) // 256]
+        ascii_frame += ascii_chars[int(pixel) * len(ascii_chars) // 256]
     # Adiciona quebras de linha
     ascii_frame = "\n".join([ascii_frame[i:i+width] for i in range(0, len(ascii_frame), width)])
     return ascii_frame
