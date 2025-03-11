@@ -73,7 +73,7 @@ class ConfirmButton(Button):
         # Apaga a mensagem com o dropdown
         await interaction.message.delete()
         await interaction.response.send_message(
-            f"Tocando o som: **{sound_name}**", ephemeral=True
+            f"Tocando o som: **{sound_name}**", ephemeral=True, delete_after=5
         )
 
 class SoundView(View):

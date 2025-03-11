@@ -85,7 +85,7 @@ class IA(commands.Cog):
             return await ctx.send("Erro ao conectar no canal de voz.")
 
         # Define o caminho do arquivo de áudio (pode ser fixo ou gerado dinamicamente)
-        speech_file_path = Path("data/tts/speech.mp3")
+        speech_file_path = Path("data/tts/speech.wav")
 
         # Gera o áudio TTS usando a API do OpenAI
         try:
