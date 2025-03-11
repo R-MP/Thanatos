@@ -27,7 +27,7 @@ def convert_frame_to_ascii(frame, width=80):
     ascii_str = "\n".join([ascii_str[i:i+width] for i in range(0, len(ascii_str), width)])
     return ascii_str
 
-def process_video_frames(video_path: str, output_dir: str, width: int = 80, max_frames: int = None):
+def process_video_frames(video_path: str, output_dir: str, width: int = 60, max_frames: int = None):
     """
     Processa um vídeo e salva cada frame convertido para ASCII em arquivos de texto.
     """
@@ -65,8 +65,6 @@ class VideoASCIICog(commands.Cog):
             pass
 
         width = 60
-        fps = 4
-        delay = 1.0 / fps
 
         # Define o diretório onde os frames serão salvos
         video_name = Path(video_path).stem
@@ -98,7 +96,7 @@ class VideoASCIICog(commands.Cog):
         for frame in ascii_frames:
             try:
                 await message.edit(content=f"```\n{frame}\n```")
-                await asyncio.sleep(delay)
+                await asyncio.sleep(100)
             except Exception as e:
                 print("Erro ao editar mensagem:", e)
                 break
