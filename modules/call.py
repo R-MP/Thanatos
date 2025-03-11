@@ -93,6 +93,9 @@ class Soundpad(commands.Cog):
 
     @commands.command(name="soundpad", help="Exibe um dropdown dinâmico com os sons disponíveis na database.")
     async def playsound(self, ctx: commands.Context):
+        # Deleta o comando
+        await ctx.message.delete()
+        
         # Carrega os sons do diretório (ajuste o caminho conforme necessário)
         sounds = load_sounds("data/soundpad")
         if not sounds:
