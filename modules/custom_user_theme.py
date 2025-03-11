@@ -3,33 +3,63 @@ import disnake
 from disnake.ext import commands
 from disnake import FFmpegPCMAudio
 
-class UserTheme(commands.Cog):
+theme_path = "data/entry_theme/"
+monkey_palace = 1337172437145616495
+
+class VoiceSoundCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        # Substitua pelos IDs do usuário e do canal desejado
-        self.target_user_id = 496224529472028684  # ID do usuário específico
-        self.target_channel_id = 1337172437145616495  # ID do canal de voz específico
-        self.sound_file = "data/entry_theme/vitinho-entry.mp3"  # Caminho para o arquivo de som
+        # Dicionário mapeando o ID do usuário para um dicionário contendo:
+        # - channel_id: ID do canal de voz onde o som deve ser tocado
+        # - sound_file: caminho para o arquivo de som
+        self.user_sounds = {
+            496224529472028684: { # Vitin
+                "channel_id": monkey_palace,
+                "sound_file": theme_path + "vitinho-entry.mp3"
+            },
+            311976988438953994: { # Soren
+                "channel_id": monkey_palace,
+                "sound_file": theme_path + "soren-entry.mp3"
+            },
+            393853808754556929: { # Gabs
+                "channel_id": monkey_palace,
+                "sound_file": theme_path + "gabs-entry.mp3"
+            },
+            305790558750638100: { # Yenneko
+                "channel_id": monkey_palace,
+                "sound_file": theme_path + "yenneko-entry.mp3"
+            },
+        }
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: disnake.Member, before: disnake.VoiceState, after: disnake.VoiceState):
-        # Verifica se é o usuário desejado
-        if member.id != self.target_user_id:
-            return
+        user_info = self.user_sounds.get(member.id)
+        if not user_info:
+            return  # Usuário não configurado para tocar som
 
-        # Verifica se ele entrou no canal de voz específico
-        if (before.channel is None or before.channel.id != self.target_channel_id) and (after.channel and after.channel.id == self.target_channel_id):
+        target_channel_id = user_info["channel_id"]
+        sound_file = user_info["sound_file"]
+
+        # Verifica se o usuário entrou no canal especificado
+        if (before.channel is None or before.channel.id != target_channel_id) and (after.channel and after.channel.id == target_channel_id):
             channel = after.channel
             try:
-                # Conecta ao canal de voz
                 vc = await channel.connect()
             except Exception as e:
                 print("Erro ao conectar no canal:", e)
                 return
 
-            # Toca o som usando FFmpeg (certifique-se de ter o FFmpeg instalado)
-            audio_source = FFmpegPCMAudio(self.sound_file)
-            vc.play(audio_source, after=lambda e: asyncio.run_coroutine_threadsafe(vc.disconnect(), self.bot.loop))
-            
+            audio_source = FFmpegPCMAudio(sound_file)
+
+            def after_playing(error):
+                coro = vc.disconnect()
+                fut = asyncio.run_coroutine_threadsafe(coro, self.bot.loop)
+                try:
+                    fut.result()
+                except Exception as e:
+                    print("Erro ao desconectar:", e)
+
+            vc.play(audio_source, after=after_playing)
+
 def setup(bot: commands.Bot):
-    bot.add_cog(UserTheme(bot))
+    bot.add_cog(VoiceSoundCog(bot))
