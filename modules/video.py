@@ -74,7 +74,6 @@ class VideoASCIICog(commands.Cog):
         if not os.path.exists(output_dir) or len(os.listdir(output_dir)) == 0:
             loading_msg = await ctx.send("Processando frames do vídeo, por favor aguarde...")
             frame_count = process_video_frames(video_path, output_dir, width=width)
-            await loading_msg.edit(content=f"Processamento concluído. {frame_count} frames gerados.")
         else:
             await ctx.send("Frames pré-processados encontrados. Iniciando reprodução...")
 
