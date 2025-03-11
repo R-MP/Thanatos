@@ -103,7 +103,7 @@ class VideoASCIICog(commands.Cog):
                     message = await ctx.send(f"```\n{frame}\n```")
                 else:
                     await message.edit(content=f"```\n{frame}\n```")
-                await asyncio.sleep(delay)
+                await asyncio.sleep(1)
             except Exception as e:
                 print("Erro ao processar frame:", e)
                 break
