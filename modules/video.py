@@ -60,7 +60,7 @@ class VideoASCIICog(commands.Cog):
             pass
 
         width = 50
-        fps = 16
+        fps = 8
         delay = 1.0 / fps
 
         # Converte o vídeo em frames ASCII
