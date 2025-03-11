@@ -96,7 +96,7 @@ class VideoASCIICog(commands.Cog):
         for frame in ascii_frames:
             try:
                 await message.edit(content=f"```\n{frame}\n```")
-                await asyncio.sleep(100)
+                await asyncio.sleep(0.1)
             except Exception as e:
                 print("Erro ao editar mensagem:", e)
                 break
