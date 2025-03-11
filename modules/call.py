@@ -31,11 +31,6 @@ class SoundDropdown(Select):
     async def callback(self, interaction: disnake.MessageInteraction):
         # Armazena a opção escolhida na view
         self.view.selected_sound = self.values[0]
-        await interaction.response.send_message(
-            f"Você escolheu: **{self.values[0]}**.\nClique no botão de confirmação para tocar.",
-            ephemeral=True
-        )
-
 class ConfirmButton(Button):
     def __init__(self):
         super().__init__(label="Confirmar", style=disnake.ButtonStyle.success)
@@ -54,7 +49,7 @@ class ConfirmButton(Button):
             )
         if not interaction.author.voice:
             return await interaction.response.send_message(
-                "Você precisa estar em um canal de voz para tocar um som.", ephemeral=True
+                "Você precisa estar em um canal de voz para tocar um som.", ephemeral=True, delete_after=5
             )
         channel = interaction.author.voice.channel
         vc = await channel.connect()
@@ -95,7 +90,7 @@ class Soundpad(commands.Cog):
     async def playsound(self, ctx: commands.Context):
         # Deleta o comando
         await ctx.message.delete()
-        
+
         # Carrega os sons do diretório (ajuste o caminho conforme necessário)
         sounds = load_sounds("data/soundpad")
         if not sounds:
