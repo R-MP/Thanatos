@@ -29,6 +29,10 @@ class VoiceSoundCog(commands.Cog):
                 "channel_id": monkey_palace,
                 "sound_file": theme_path + "yenneko-entry.mp3"
             },
+            348243086977007628: { # Rodrigo
+                "channel_id": monkey_palace,
+                "sound_file": theme_path + "rodrigo-entry.mp3"
+            },
         }
 
     @commands.Cog.listener()
