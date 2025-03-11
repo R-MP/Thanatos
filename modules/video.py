@@ -1,90 +1,114 @@
+import os
 import cv2
 import asyncio
+import re
+import shutil
+from pathlib import Path
 import disnake
 from disnake.ext import commands
 
 def convert_frame_to_ascii(frame, width=80):
     """
     Converte um frame (imagem) para ASCII.
-    Este é um exemplo simples. Você precisará ajustar a lógica para obter um resultado bom.
     """
     # Redimensiona o frame mantendo a proporção
     height, original_width = frame.shape[:2]
     aspect_ratio = height / original_width
-    new_height = int(aspect_ratio * width * 0.55)  # 0.55 é um fator de correção para fontes monoespaçadas
+    new_height = int(aspect_ratio * width * 0.55)  # fator de correção para fontes monoespaçadas
     resized_frame = cv2.resize(frame, (width, new_height))
     # Converte para escala de cinza
     gray = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
-    
-    # Mapeamento de níveis de cinza para caracteres ASCII
-    ascii_chars = " .:-=+*#%@"
-    ascii_frame = ""
+    # Mapeamento de níveis de cinza para caracteres ASCII (do mais escuro para o mais claro)
+    ascii_chars = " .:-=+*#%@"  
+    ascii_str = ""
     for pixel in gray.flatten():
-        ascii_frame += ascii_chars[int(pixel) * len(ascii_chars) // 256]
-    # Adiciona quebras de linha
-    ascii_frame = "\n".join([ascii_frame[i:i+width] for i in range(0, len(ascii_frame), width)])
-    return ascii_frame
+        ascii_str += ascii_chars[int(pixel) * len(ascii_chars) // 256]
+    # Insere quebras de linha
+    ascii_str = "\n".join([ascii_str[i:i+width] for i in range(0, len(ascii_str), width)])
+    return ascii_str
+
+def process_video_frames(video_path: str, output_dir: str, width: int = 80, max_frames: int = None):
+    """
+    Processa um vídeo e salva cada frame convertido para ASCII em arquivos de texto.
+    """
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    cap = cv2.VideoCapture(video_path)
+    frame_count = 0
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        ascii_frame = convert_frame_to_ascii(frame, width=width)
+        # Salva cada frame em um arquivo com nome sequencial
+        filename = os.path.join(output_dir, f"frame{frame_count:04d}.txt")
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(ascii_frame)
+        frame_count += 1
+        if max_frames and frame_count >= max_frames:
+            break
+    cap.release()
+    return frame_count
 
 class VideoASCIICog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    def video_to_ascii_frames(self, video_path: str, width: int = 80, max_frames: int = None):
-        """
-        Lê um vídeo e converte cada frame para ASCII.
-        max_frames: se definido, limita a quantidade de frames processados.
-        """
-        cap = cv2.VideoCapture(video_path)
-        frames = []
-        count = 0
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            ascii_frame = convert_frame_to_ascii(frame, width=width)
-            frames.append(ascii_frame)
-            count += 1
-            if max_frames and count >= max_frames:
-                break
-        cap.release()
-        return frames
-
     @commands.command(name="apple", help="Reproduz um vídeo em ASCII no chat.")
     async def apple(self, ctx: commands.Context):
         video_path = "data/video/badapple.mp4"
 
-        # Exclui a mensagem do comando, se desejado
+        # Apaga a mensagem do comando, se desejar
         try:
             await ctx.message.delete()
         except Exception:
             pass
 
-        width = 50
+        width = 60
         fps = 8
         delay = 1.0 / fps
 
-        # Converte o vídeo em frames ASCII
-        frames = self.video_to_ascii_frames(video_path, width=width, max_frames=200)  # Limite de frames para não demorar demais
-        if not frames:
-            return await ctx.send("Não foi possível processar o vídeo.")
+        # Define o diretório onde os frames serão salvos
+        video_name = Path(video_path).stem
+        output_dir = f"data/video/frames/{video_name}_w{width}"
+        
+        # Se não houver frames pré-processados, processa e salva
+        if not os.path.exists(output_dir) or len(os.listdir(output_dir)) == 0:
+            loading_msg = await ctx.send("Processando frames do vídeo, por favor aguarde...")
+            frame_count = process_video_frames(video_path, output_dir, width=width)
+            await loading_msg.edit(content=f"Processamento concluído. {frame_count} frames gerados.")
+        else:
+            await ctx.send("Frames pré-processados encontrados. Iniciando reprodução...")
 
-        # Envia uma mensagem inicial que será editada
-        message = await ctx.send("```\nCarregando vídeo...\n```")
+        # Carrega os frames já processados (arquivos .txt)
+        frame_files = sorted([os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith('.txt')])
+        if not frame_files:
+            return await ctx.send("Nenhum frame encontrado para reprodução.")
 
-        # Atualiza a mensagem com cada frame
-        for frame in frames:
+        # Envia uma mensagem inicial que será editada com os frames
+        message = await ctx.send("```\nCarregando frames...\n```")
+        for frame_file in frame_files:
             try:
-                await message.edit(content=f"```\n{frame}\n```")
+                with open(frame_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                await message.edit(content=f"```\n{content}\n```")
                 await asyncio.sleep(delay)
             except Exception as e:
                 print("Erro ao editar mensagem:", e)
                 break
 
-        # Após terminar, deleta a mensagem ou envia uma mensagem final
+        # Após a reprodução, deleta a mensagem e os frames
         try:
             await message.delete()
         except Exception:
             pass
+
+        # Remove a pasta dos frames para liberar espaço
+        try:
+            shutil.rmtree(output_dir)
+            await ctx.send("Frames deletados após a reprodução.", delete_after=5)
+        except Exception as e:
+            await ctx.send(f"Erro ao deletar os frames: {e}", delete_after=5)
 
 def setup(bot: commands.Bot):
     bot.add_cog(VideoASCIICog(bot))
