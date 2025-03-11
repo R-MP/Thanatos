@@ -72,10 +72,7 @@ class VideoASCIICog(commands.Cog):
         
         # Se não houver frames pré-processados, processa e salva
         if not os.path.exists(output_dir) or len(os.listdir(output_dir)) == 0:
-            loading_msg = await ctx.send("Processando frames do vídeo, por favor aguarde...")
             frame_count = process_video_frames(video_path, output_dir, width=width)
-        else:
-            await ctx.send("Frames pré-processados encontrados. Iniciando reprodução...")
 
         # Carrega os frames já processados (arquivos .txt) e pré-carrega em memória
         frame_files = sorted([os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith('.txt')])
@@ -95,7 +92,7 @@ class VideoASCIICog(commands.Cog):
         for frame in ascii_frames:
             try:
                 await message.edit(content=f"```\n{frame}\n```")
-                await asyncio.sleep(3)
+                await asyncio.sleep(1)
             except Exception as e:
                 print("Erro ao editar mensagem:", e)
                 break
