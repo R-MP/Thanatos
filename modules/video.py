@@ -88,16 +88,27 @@ class VideoASCIICog(commands.Cog):
                 print(f"Erro ao ler o arquivo {frame_file}: {e}")
 
         # Envia uma mensagem inicial que será editada com os frames
-        message = await ctx.send("```\nCarregando frames...\n```")
-        for frame in ascii_frames:
+        # Alterna entre enviar nova mensagem e atualizar a mensagem
+        message = None
+        interval = 5  # a cada 5 frames, envia uma nova mensagem
+        for i, frame in enumerate(ascii_frames):
             try:
-                await message.edit(content=f"```\n{frame}\n```")
-                await asyncio.sleep(0.5)
+                if i % interval == 0:
+                    # Se houver uma mensagem antiga, deleta-a antes de enviar a nova
+                    if message is not None:
+                        try:
+                            await message.delete()
+                        except Exception:
+                            pass
+                    message = await ctx.send(f"```\n{frame}\n```")
+                else:
+                    await message.edit(content=f"```\n{frame}\n```")
+                await asyncio.sleep(delay)
             except Exception as e:
-                print("Erro ao editar mensagem:", e)
+                print("Erro ao processar frame:", e)
                 break
 
-        # Após a reprodução, deleta a mensagem e os frames
+        # Após a reprodução, deleta a última mensagem
         try:
             await message.delete()
         except Exception:
