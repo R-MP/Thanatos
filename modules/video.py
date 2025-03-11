@@ -59,7 +59,7 @@ class VideoASCIICog(commands.Cog):
         except Exception:
             pass
 
-        width = 80
+        width = 50
         fps = 16
         delay = 1.0 / fps
 
