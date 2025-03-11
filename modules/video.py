@@ -65,7 +65,7 @@ class VideoASCIICog(commands.Cog):
             pass
 
         width = 60
-        fps = 8
+        fps = 4
         delay = 1.0 / fps
 
         # Define o diretório onde os frames serão salvos
