@@ -2,7 +2,7 @@ disnake==2.10.1
 Pillow
 PyNaCl
 openai
-cv2
+opencv-python
 python-dotenv
 user_agent
 requests>=2.31.0
