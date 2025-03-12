@@ -13,6 +13,10 @@ class VoiceSoundCog(commands.Cog):
         # - channel_id: ID do canal de voz onde o som deve ser tocado
         # - sound_file: caminho para o arquivo de som
         self.user_sounds = {
+            291336181348696081: { # Soto
+                "channel_id": monkey_palace,
+                "sound_file": theme_path + "soto-entry.mp3"
+            },
             496224529472028684: { # Vitin
                 "channel_id": monkey_palace,
                 "sound_file": theme_path + "vitinho-entry.mp3"
