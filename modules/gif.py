@@ -51,14 +51,15 @@ def process_video_frames(video_path: str, output_dir: str, width: int = 80, max_
     cap.release()
     return frame_count
 
-def ascii_to_image(ascii_text, font_path=None, font_size=10, bg_color="white", text_color="black"):
+def ascii_to_image(ascii_text, font_path=None, font_size=16, bg_color="white", text_color="black", scale_factor=2):
     """
     Converte um frame ASCII em uma imagem.
     Usa uma fonte monoespaçada para manter o alinhamento.
+    O parâmetro scale_factor aumenta o tamanho final da imagem.
     """
     # Garante que o ascii_text não esteja vazio
     if not ascii_text.strip():
-        ascii_text = " "  # ou pode ser uma linha em branco
+        ascii_text = " "
     
     lines = ascii_text.splitlines()
     if not lines:
@@ -82,11 +83,11 @@ def ascii_to_image(ascii_text, font_path=None, font_size=10, bg_color="white", t
         max_width = max(max_width, w)
         total_height += h
     
-    # Evita criar uma imagem com dimensões zero
+    # Define dimensões mínimas, se necessário
     if max_width == 0 or total_height == 0:
         max_width, total_height = 10, 10
 
-    # Cria a imagem final com o tamanho adequado
+    # Cria a imagem final com o tamanho calculado
     img = Image.new("RGB", (max_width, total_height), color=bg_color)
     draw = ImageDraw.Draw(img)
     y = 0
@@ -95,6 +96,11 @@ def ascii_to_image(ascii_text, font_path=None, font_size=10, bg_color="white", t
         h = bbox[3] - bbox[1]
         draw.text((0, y), line, fill=text_color, font=font)
         y += h
+
+    # Redimensiona a imagem para um tamanho maior, se desejado
+    if scale_factor != 1:
+        new_size = (img.width * scale_factor, img.height * scale_factor)
+        img = img.resize(new_size, Image.NEAREST)
     return img
 
 class GIF(commands.Cog):
