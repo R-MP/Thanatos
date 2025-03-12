@@ -51,7 +51,7 @@ def process_video_frames(video_path: str, output_dir: str, width: int = 80, max_
     cap.release()
     return frame_count
 
-def ascii_to_image(ascii_text, font_path=None, font_size=20, bg_color="white", text_color="black", scale_factor=200):
+def ascii_to_image(ascii_text, font_path=None, font_size=20, bg_color="white", text_color="black", scale_factor=5):
     """
     Converte um frame ASCII em uma imagem.
     Usa uma fonte monoespaçada para manter o alinhamento.
