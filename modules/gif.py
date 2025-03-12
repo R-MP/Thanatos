@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 import disnake
 from disnake.ext import commands
+from PIL import Image, ImageDraw, ImageFont
 
 def convert_frame_to_ascii(frame, width=80):
     """
@@ -27,7 +28,7 @@ def convert_frame_to_ascii(frame, width=80):
     ascii_str = "\n".join([ascii_str[i:i+width] for i in range(0, len(ascii_str), width)])
     return ascii_str
 
-def process_video_frames(video_path: str, output_dir: str, width: int = 60, max_frames: int = None):
+def process_video_frames(video_path: str, output_dir: str, width: int = 80, max_frames: int = None):
     """
     Processa um vídeo e salva cada frame convertido para ASCII em arquivos de texto.
     """
@@ -50,31 +51,67 @@ def process_video_frames(video_path: str, output_dir: str, width: int = 60, max_
     cap.release()
     return frame_count
 
-class VideoASCIICog(commands.Cog):
+def ascii_to_image(ascii_text, font_path=None, font_size=10, bg_color="white", text_color="black"):
+    """
+    Converte um frame ASCII em uma imagem.
+    Usa um fonte monoespaçada para manter o alinhamento.
+    """
+    lines = ascii_text.splitlines()
+    # Tenta usar uma fonte monoespaçada padrão; se desejar, especifique o caminho de uma fonte
+    if font_path is None:
+        font = ImageFont.load_default()
+    else:
+        font = ImageFont.truetype(font_path, font_size)
+    
+    # Cria uma imagem dummy para medir o tamanho do texto
+    dummy_img = Image.new("RGB", (10, 10))
+    draw = ImageDraw.Draw(dummy_img)
+    max_width = 0
+    total_height = 0
+    for line in lines:
+        w, h = draw.textsize(line, font=font)
+        max_width = max(max_width, w)
+        total_height += h
+    # Cria a imagem final
+    img = Image.new("RGB", (max_width, total_height), color=bg_color)
+    draw = ImageDraw.Draw(img)
+    y = 0
+    for line in lines:
+        draw.text((0, y), line, fill=text_color, font=font)
+        y += draw.textsize(line, font=font)[1]
+    return img
+
+class GIF(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="apple", help="Reproduz um vídeo em ASCII no chat.")
+    @commands.command(name="apple", help="Reproduz um vídeo em ASCII no chat, gerando um GIF animado.")
     async def apple(self, ctx: commands.Context):
         video_path = "data/video/badapple.mp4"
 
-        # Apaga a mensagem do comando, se desejado
+        # Apaga a mensagem do comando, se desejar
         try:
             await ctx.message.delete()
         except Exception:
             pass
 
-        width = 60
+        width = 120
+        fps = 16
+        delay = 1.0 / fps  # duração de cada frame (em segundos)
 
         # Define o diretório onde os frames serão salvos
         video_name = Path(video_path).stem
         output_dir = f"data/video/frames/{video_name}_w{width}"
         
-        # Se não houver frames pré-processados, processa e salva
+        # Processa os frames se não houver pré-processados
         if not os.path.exists(output_dir) or len(os.listdir(output_dir)) == 0:
+            loading_msg = await ctx.send("Processando frames do vídeo, por favor aguarde...")
             frame_count = process_video_frames(video_path, output_dir, width=width)
+            await loading_msg.edit(content=f"Processamento concluído. {frame_count} frames gerados.")
+        else:
+            await ctx.send("Frames pré-processados encontrados. Iniciando reprodução...")
 
-        # Carrega os frames já processados (arquivos .txt) e pré-carrega em memória
+        # Carrega os frames já processados e pré-carrega os conteúdos em memória
         frame_files = sorted([os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith('.txt')])
         if not frame_files:
             return await ctx.send("Nenhum frame encontrado para reprodução.")
@@ -87,28 +124,35 @@ class VideoASCIICog(commands.Cog):
             except Exception as e:
                 print(f"Erro ao ler o arquivo {frame_file}: {e}")
 
-        # Envia uma mensagem inicial que será editada com os frames
-        message = await ctx.send("```\nCarregando frames...\n```")
-        for frame in ascii_frames:
-            try:
-                await message.edit(content=f"```\n{frame}\n```")
-                await asyncio.sleep(0.05)
-            except Exception as e:
-                print("Erro ao editar mensagem:", e)
-                break
+        # Converte cada frame ASCII em uma imagem
+        images = []
+        for ascii_frame in ascii_frames:
+            img = ascii_to_image(ascii_frame, font_size=10)
+            images.append(img)
 
-        # Após a reprodução, deleta a mensagem e os frames
+        # Gera o GIF animado
+        gif_path = f"data/video/{video_name}_ascii.gif"
         try:
-            await message.delete()
-        except Exception:
-            pass
+            # O parâmetro duration espera milissegundos
+            images[0].save(gif_path, save_all=True, append_images=images[1:], duration=int(delay*1000), loop=0)
+        except Exception as e:
+            return await ctx.send(f"Erro ao gerar GIF: {e}")
 
-        # Remove a pasta dos frames para liberar espaço
+        # Envia o GIF no chat
+        try:
+            await ctx.send(file=disnake.File(gif_path))
+        except Exception as e:
+            await ctx.send(f"Erro ao enviar GIF: {e}")
+
+        # Limpa: deleta a pasta dos frames e o arquivo GIF
         try:
             shutil.rmtree(output_dir)
-            await ctx.send("Frames deletados após a reprodução.", delete_after=5)
         except Exception as e:
-            await ctx.send(f"Erro ao deletar os frames: {e}", delete_after=5)
+            print(f"Erro ao deletar frames: {e}")
+        try:
+            os.remove(gif_path)
+        except Exception as e:
+            print(f"Erro ao deletar o GIF: {e}")
 
 def setup(bot: commands.Bot):
-    bot.add_cog(VideoASCIICog(bot))
+    bot.add_cog(GIF(bot))
