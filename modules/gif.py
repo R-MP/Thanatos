@@ -54,10 +54,10 @@ def process_video_frames(video_path: str, output_dir: str, width: int = 80, max_
 def ascii_to_image(ascii_text, font_path=None, font_size=10, bg_color="white", text_color="black"):
     """
     Converte um frame ASCII em uma imagem.
-    Usa um fonte monoespaçada para manter o alinhamento.
+    Usa uma fonte monoespaçada para manter o alinhamento.
     """
     lines = ascii_text.splitlines()
-    # Tenta usar uma fonte monoespaçada padrão; se desejar, especifique o caminho de uma fonte
+    # Usa uma fonte monoespaçada padrão se nenhuma for especificada
     if font_path is None:
         font = ImageFont.load_default()
     else:
@@ -69,16 +69,21 @@ def ascii_to_image(ascii_text, font_path=None, font_size=10, bg_color="white", t
     max_width = 0
     total_height = 0
     for line in lines:
-        w, h = draw.textsize(line, font=font)
+        bbox = draw.textbbox((0, 0), line, font=font)
+        w = bbox[2] - bbox[0]
+        h = bbox[3] - bbox[1]
         max_width = max(max_width, w)
         total_height += h
-    # Cria a imagem final
+    
+    # Cria a imagem final com o tamanho adequado
     img = Image.new("RGB", (max_width, total_height), color=bg_color)
     draw = ImageDraw.Draw(img)
     y = 0
     for line in lines:
+        bbox = draw.textbbox((0, 0), line, font=font)
+        h = bbox[3] - bbox[1]
         draw.text((0, y), line, fill=text_color, font=font)
-        y += draw.textsize(line, font=font)[1]
+        y += h
     return img
 
 class GIF(commands.Cog):
