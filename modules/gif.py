@@ -56,7 +56,14 @@ def ascii_to_image(ascii_text, font_path=None, font_size=10, bg_color="white", t
     Converte um frame ASCII em uma imagem.
     Usa uma fonte monoespaçada para manter o alinhamento.
     """
+    # Garante que o ascii_text não esteja vazio
+    if not ascii_text.strip():
+        ascii_text = " "  # ou pode ser uma linha em branco
+    
     lines = ascii_text.splitlines()
+    if not lines:
+        lines = [" "]
+        
     # Usa uma fonte monoespaçada padrão se nenhuma for especificada
     if font_path is None:
         font = ImageFont.load_default()
@@ -75,6 +82,10 @@ def ascii_to_image(ascii_text, font_path=None, font_size=10, bg_color="white", t
         max_width = max(max_width, w)
         total_height += h
     
+    # Evita criar uma imagem com dimensões zero
+    if max_width == 0 or total_height == 0:
+        max_width, total_height = 10, 10
+
     # Cria a imagem final com o tamanho adequado
     img = Image.new("RGB", (max_width, total_height), color=bg_color)
     draw = ImageDraw.Draw(img)
