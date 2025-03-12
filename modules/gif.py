@@ -51,7 +51,7 @@ def process_video_frames(video_path: str, output_dir: str, width: int = 80, max_
     cap.release()
     return frame_count
 
-def ascii_to_image(ascii_text, font_path=None, font_size=20, bg_color="white", text_color="black", scale_factor=3):
+def ascii_to_image(ascii_text, font_path=None, font_size=16, bg_color="white", text_color="black", scale_factor=2):
     """
     Converte um frame ASCII em uma imagem.
     Usa uma fonte monoespaçada para manter o alinhamento.
@@ -74,8 +74,8 @@ def ascii_to_image(ascii_text, font_path=None, font_size=20, bg_color="white", t
     # Cria uma imagem dummy para medir o tamanho do texto
     dummy_img = Image.new("RGB", (10, 10))
     draw = ImageDraw.Draw(dummy_img)
-    max_width = 0
-    total_height = 0
+    max_width = 420
+    total_height = 420
     for line in lines:
         bbox = draw.textbbox((0, 0), line, font=font)
         w = bbox[2] - bbox[0]
