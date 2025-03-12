@@ -100,8 +100,8 @@ class GIF(commands.Cog):
         except Exception:
             pass
 
-        width = 120
-        fps = 16
+        width = 80
+        fps = 10
         delay = 1.0 / fps  # duração de cada frame (em segundos)
 
         # Define o diretório onde os frames serão salvos
