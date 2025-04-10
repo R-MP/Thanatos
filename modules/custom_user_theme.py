@@ -3,9 +3,6 @@ import disnake
 from disnake.ext import commands
 from disnake import FFmpegPCMAudio
 
-theme_path = "data/entry_theme/"
-monkey_palace = 1337172437145616495
-
 # ID do usuário que, se já estiver na call, dispara o som extra
 SPECIFIC_USER_FOR_EXTRA_SOUND = 311976988438953994  # Substitua pela ID correta
 EXTRA_SOUND_FILE = theme_path + "follow-entry.mp3"      # Substitua pelo caminho do arquivo desejado
@@ -68,14 +65,6 @@ class VoiceSoundCog(commands.Cog):
             # Aguarda enquanto o som está tocando
             while vc.is_playing():
                 await asyncio.sleep(0.5)
-
-            # Verifica se o usuário específico já está presente na call
-            if any(m.id == SPECIFIC_USER_FOR_EXTRA_SOUND for m in channel.members):
-                await asyncio.sleep(5)  # Espera 5 segundos antes de tocar o som extra
-                vc.play(FFmpegPCMAudio(EXTRA_SOUND_FILE))
-                # Aguarda a finalização do som extra
-                while vc.is_playing():
-                    await asyncio.sleep(0.5)
 
             await vc.disconnect()
 
