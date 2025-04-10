@@ -7,8 +7,8 @@ theme_path = "data/entry_theme/"
 monkey_palace = 1337172437145616495
 
 # ID do usuário que, se já estiver na call, dispara o som extra
-SPECIFIC_USER_FOR_EXTRA_SOUND = 305790558750638100  # Substitua pela ID correta
-EXTRA_SOUND_FILE = theme_path + "extra-sound.mp3"      # Substitua pelo caminho do arquivo desejado
+SPECIFIC_USER_FOR_EXTRA_SOUND = 311976988438953994  # Substitua pela ID correta
+EXTRA_SOUND_FILE = theme_path + "follow-entry.mp3"      # Substitua pelo caminho do arquivo desejado
 
 class VoiceSoundCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
