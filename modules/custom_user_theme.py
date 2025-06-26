@@ -43,6 +43,10 @@ class VoiceSoundCog(commands.Cog):
                 "channel_id": monkey_palace,
                 "sound_file": theme_path + "vitao-entry.mp3"
             },
+            141655991841193984: {  # Bruno
+                "channel_id": monkey_palace,
+                "sound_file": theme_path + "bruno-entry.mp3"
+            },
         }
 
     @commands.Cog.listener()
