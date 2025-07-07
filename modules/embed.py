@@ -18,8 +18,7 @@ class EmbedCog(commands.Cog):
         embed = disnake.Embed(
             title=title,
             url=link,
-            colour=0x00b0f4,
-            timestamp=datetime.now()
+            colour=0xf4ee00,
         )
         # Se houver uma imagem anexada na mesma mensagem, usa-a
         if ctx.message.attachments:
