@@ -232,7 +232,6 @@ class EmbedPaginator(disnake.ui.View):
 
 song_request_buttons = [
     disnake.ui.Button(label="Pedir uma música", emoji="🎶", custom_id=PlayerControls.add_song),
-    disnake.ui.Button(label="Tocar favorito/integração", emoji="⭐", custom_id=PlayerControls.enqueue_fav)
 ]
 
 
@@ -415,7 +414,7 @@ async def send_idle_embed(
             disnake.ui.Select(
                 placeholder="Músicas/Playlists do servidor.",
                 options=opts, custom_id="player_guild_pin",
-                min_values=0, max_values=1
+                min_values=0, max_values=1, required = False,
             )
         )
 
@@ -804,6 +803,9 @@ def queue_track_index(inter: disnake.AppCmdInter, bot: BotCore, query: str, matc
     return tracklist
 
 def update_inter(old: Union[disnake.Interaction, CustomContext], new: disnake.Interaction):
+
+    if not new:
+        return
 
     if isinstance(old, CustomContext):
         old.inter = new

@@ -10,7 +10,6 @@ import re
 import traceback
 import uuid
 from collections import deque
-from contextlib import suppress
 from itertools import cycle
 from time import time
 from typing import Optional, Union, TYPE_CHECKING, List
@@ -27,6 +26,7 @@ from utils.music.checks import can_connect
 from utils.music.converters import fix_characters, time_format, get_button_style
 from utils.music.errors import GenericError, PoolException
 from utils.music.filters import AudioFilter
+from utils.music.lastfm_tools import LastFmException
 from utils.music.skin_utils import skin_converter
 from utils.music.track_encoder import encode_track, DataWriter
 from utils.others import music_source_emoji, send_idle_embed, PlayerControls, string_to_file
@@ -362,11 +362,15 @@ class LavalinkTrack(wavelink.Track):
         try:
             self.info["extra"]
         except KeyError:
-            self.info["extra"] = {
+            self.info["extra"] = {}
+
+        self.info["extra"].update(
+            {
                 "track_loops": kwargs.pop('track_loops', 0),
                 "requester": kwargs.pop('requester', ''),
                 "autoplay": kwargs.pop("autoplay", '')
             }
+        )
 
         self.playlist: Optional[LavalinkPlaylist] = kwargs.pop(
             "playlist", None)
@@ -429,8 +433,8 @@ class LavalinkTrack(wavelink.Track):
         return f"`{self.author}`"
 
     @property
-    def authors(self) -> str:
-        return f"{self.author}"
+    def authors(self) -> List[str]:
+        return [f"{self.author}"]
 
     @property
     def authors_string(self) -> str:
@@ -838,6 +842,17 @@ class LavalinkPlayer(wavelink.Player):
             except AttributeError:
                 vc = None
 
+            if event.code == 4022:
+                if self.keep_connected and vc:
+                    await asyncio.sleep(5)
+                    self.set_command_log(emoji="⚠️", text=f"Caso queira me desconectar do canal {vc.mention} com o modo 24/7 ativo, use o comando ou o botão **stop/parar**.")
+                    await self.connect(vc.id)
+                    self.update = True
+                else:
+                    await self.destroy(force=True)
+                    print(f"Bot: {self.bot.user} | Desconectado do canal de voz: {self.guild_id}")
+                return
+
             if event.code == 4014 and self.guild.me.voice:
                 pass
             else:
@@ -1029,7 +1044,7 @@ class LavalinkPlayer(wavelink.Player):
 
                     start_position = 0
 
-                    if event.cause.startswith((
+                    if ignore_error_log:=event.cause.startswith((
                             "java.lang.IllegalStateException: Failed to get media URL: 2000: An error occurred while decoding track token",
                             "java.net.SocketTimeoutException: Connect timed out",
                             "java.net.SocketTimeoutException: Read timed out",
@@ -1046,8 +1061,6 @@ class LavalinkPlayer(wavelink.Player):
                         if not hasattr(self, 'retries_general_errors'):
                             self.retries_general_errors = {'counter': 6, 'last_node': self.node.identifier,
                                                            "last_time": disnake.utils.utcnow()}
-
-                        embed = None
 
                         self.queue.appendleft(track)
 
@@ -1077,7 +1090,6 @@ class LavalinkPlayer(wavelink.Player):
                         cooldown = 4
 
                     elif event.cause == "java.lang.InterruptedException":
-                        embed = None
                         self.queue.appendleft(track)
                         try:
                             self._new_node_task.cancel()
@@ -1116,20 +1128,22 @@ class LavalinkPlayer(wavelink.Player):
                             await send_report()
                             continue
 
-                        txt = f"Devido a restrições do youtube no servidor `{self.node.identifier}`. Durante a sessão atual " \
-                              "será feito uma tentativa de obter a mesma música em outras plataformas de música usando o nome " \
-                              "das músicas do youtube que estão na fila (talvez a música tocada seja diferente do esperado " \
-                              "ou até mesmo ignoradas caso não retorne resultados)."
-                        try:
-                            await self.text_channel.send(embed=disnake.Embed(
-                                description=txt, color=self.bot.get_color(self.guild.me)
-                            ), delete_after=30)
-                        except:
-                            self.set_command_log(text=txt, emoji="⚠️", controller=True)
+                        if not getattr(self, "yt_warn", None):
+                            txt = f"Devido a restrições do youtube no servidor `{self.node.identifier}`. Durante a sessão atual " \
+                                  "será feito uma tentativa de obter a mesma música em outras plataformas de música usando o nome " \
+                                  "das músicas do youtube que estão na fila (talvez a música tocada seja diferente do esperado " \
+                                  "ou até mesmo ignoradas caso não retorne resultados)."
+                            try:
+                                await self.text_channel.send(embed=disnake.Embed(
+                                    description=txt, color=self.bot.get_color(self.guild.me)
+                                ), delete_after=30)
+                            except:
+                                self.set_command_log(text=txt, emoji="⚠️", controller=True)
+                            self.yt_warn = True
+                            await send_report()
 
                         self.locked = False
                         await self.process_next(start_position=self.position)
-                        await send_report()
                         continue
 
                     elif not track.track_loops:
@@ -1155,7 +1169,7 @@ class LavalinkPlayer(wavelink.Player):
 
                     await send_report()
 
-                    if embed and self.text_channel and send_message_perm:
+                    if not ignore_error_log and embed and self.text_channel and send_message_perm:
                         await self.text_channel.send(embed=embed, delete_after=10)
 
                     await asyncio.sleep(cooldown)
@@ -1373,7 +1387,7 @@ class LavalinkPlayer(wavelink.Player):
             except AttributeError:
                 vc = self.last_channel
 
-            if [m for m in vc.members if not m.bot and not (m.voice.deaf or m.voice.self_deaf)]:
+            if vc and [m for m in vc.members if not m.bot and not (m.voice.deaf or m.voice.self_deaf)]:
                 try:
                     self.auto_skip_track_task.cancel()
                 except:
@@ -1388,7 +1402,12 @@ class LavalinkPlayer(wavelink.Player):
 
             await asyncio.sleep(idle_timeout)
 
-            if [m for m in vc.members if not m.bot and not (m.voice.deaf or m.voice.self_deaf)]:
+            try:
+                vc = self.guild.me.voice.channel
+            except AttributeError:
+                vc = self.last_channel
+
+            if vc and [m for m in vc.members if not m.bot and not (m.voice.deaf or m.voice.self_deaf)]:
                 try:
                     self.auto_skip_track_task.cancel()
                 except:
@@ -1428,12 +1447,13 @@ class LavalinkPlayer(wavelink.Player):
             except AttributeError:
                 vc = self.last_channel
 
-            if [m for m in vc.members if not m.bot]:
+            if vc and [m for m in vc.members if not m.bot]:
                 return
 
-            msg = "O player foi desligado por falta de membros no canal" + (f" <#{self.guild.me.voice.channel.id}>"
-                                                                               if self.guild.me.voice else '') + "..."
+            msg = "O player foi desligado por falta de membros no canal" + (f" <#{vc.id}>" if vc else '') + "..."
+
             self.command_log = msg
+
             if not self.controller_mode:
                 embed = disnake.Embed(
                     description=f"**{msg}**", color=self.bot.get_color(self.guild.me))
@@ -1594,7 +1614,7 @@ class LavalinkPlayer(wavelink.Player):
                             source_name="soundcloud",
                             identifier=i["id"],
                             autoplay=True,
-                        ) for i in info['entries']]
+                        ) for i in info.get('entries', [])]
 
                 if not tracks:
 
@@ -1616,6 +1636,8 @@ class LavalinkPlayer(wavelink.Player):
                             self.lastfm_artists = [a['name'] for a in
                                                    await self.bot.last_fm.get_similar_artists(artist) if a['name'].lower() not in track_data.author.lower()]
                             self.lastfm_artists.insert(0, track_data.author)
+                        except LastFmException as e:
+                            print(f"Last.FM recommendations error: {repr(e)}")
                         except:
                             traceback.print_exc()
 
@@ -1635,8 +1657,8 @@ class LavalinkPlayer(wavelink.Player):
 
                         queries.extend([f"{sp}:{author.split(',')[0]}" for sp in providers])
 
-                    elif track_data.info["sourceName"] == "spotify" and "spotify" in self.node.info["sourceManagers"] and (spotify_tracks:=[t.identifier for t in tracks_search if t.info["sourceName"] == "spotify"]):
-                        queries = ["sprec:seed_tracks=" + ",".join(set(spotify_tracks[:5]))]
+                    #elif track_data.info["sourceName"] == "spotify" and "spotify" in self.node.info["sourceManagers"] and (spotify_tracks:=[t.identifier for t in tracks_search if t.info["sourceName"] == "spotify"]):
+                    #    queries = ["sprec:seed_tracks=" + ",".join(set(spotify_tracks[:5]))]
 
                     elif track_data.info["sourceName"] == "deezer" and "deezer" in self.node.info["sourceManagers"] and (deezer_tracks:=[t.identifier for t in tracks_search if t.info["sourceName"] == "deezer"]):
                         queries = [f"dzrec:{deezer_tracks[0]}"]
@@ -2147,16 +2169,75 @@ class LavalinkPlayer(wavelink.Player):
             self.locked = False
             await self.process_next()
 
+    async def play(self, track: Union[LavalinkTrack], *, replace: bool = True, start: int = 0, end: int = 0, **kwargs):
+
+        if replace or not self.is_playing:
+            self.last_update = 0
+            self.last_position = 0
+            self.position_timestamp = 0
+            self.paused = False
+        else:
+            return
+
+        self.current = track
+
+        self.current_encoded = kwargs.pop("temp_id", None) or track.id
+
+        if self.node.version == 3:
+
+            payload = {
+                'op': 'play',
+                'guildId': str(self.guild_id),
+                'track': self.current_encoded,
+                'noReplace': not replace,
+                'startTime': start,
+            }
+
+            payload.update(kwargs)
+
+            if end > 0:
+                payload['endTime'] = str(end)
+
+            await self.node._send(**payload, **kwargs)
+        else:
+
+            vol: int = kwargs.get('volume') or self.volume
+
+            if vol != self.volume:
+                self.volume = vol
+
+            pause: bool
+
+            if (p := kwargs.get("paused")) is not None:
+                pause = p
+            else:
+                pause = self.paused
+
+            payload = {
+                "encodedTrack": self.current_encoded,
+                "volume": vol,
+                "position": int(start),
+                "paused": pause,
+                "filters": self.filters,
+            }
+
+            if end > 0:
+                payload['endTime'] = str(end)
+
+            if track.source_name == "youtube":
+                try:
+                    payload["userData"] = {"oauth-token": self.extra_info["guild-yt-oauth"][0]}
+                except KeyError:
+                    pass
+
+            await self.node.update_player(self.guild_id, payload, replace)
+
     async def process_idle_message(self):
 
         controller_opts = [
             disnake.SelectOption(
                 emoji="<:add_music:588172015760965654>", value=PlayerControls.add_song, label="Adicionar música",
                 description=f"Tocar nova música/playlist."
-            ),
-            disnake.SelectOption(
-                emoji="⭐", value=PlayerControls.enqueue_fav, label="Adicionar favorito",
-                description=f"Adicionar favorito na fila."
             ),
         ]
 
@@ -2199,7 +2280,7 @@ class LavalinkPlayer(wavelink.Player):
         components = [
             disnake.ui.Select(
                 placeholder="Executar uma ação:", options=controller_opts,
-                custom_id="musicplayer_dropdown_idle", min_values=0, max_values=1
+                custom_id="musicplayer_dropdown_idle", min_values=0, max_values=1, required = False
             )
         ]
 
@@ -2487,11 +2568,12 @@ class LavalinkPlayer(wavelink.Player):
 
         self.last_data = data
 
-        try:
-            if self.static and isinstance(self.text_channel.parent, disnake.ForumChannel):
-                data["content"] = f"`{'▶️' if not self.paused else '⏸️'} {fix_characters(self.current.title, 50)}` |\n\n" + (data.get("content") or "")
-        except:
-            pass
+        if not data.get("flags"):
+            try:
+                if self.static and isinstance(self.text_channel.parent, disnake.ForumChannel):
+                    data["content"] = f"`{'▶️' if not self.paused else '⏸️'} {fix_characters(self.current.title, 50)}` |\n\n" + (data.get("content") or "")
+            except:
+                pass
 
         if not self.controller_mode:
 
@@ -2550,17 +2632,12 @@ class LavalinkPlayer(wavelink.Player):
                     disnake.ui.Select(
                         placeholder="Mais opções:",
                         custom_id="musicplayer_dropdown_inter",
-                        min_values=0, max_values=1,
+                        min_values=0, max_values=1, required = False,
                         options=[
                             disnake.SelectOption(
                                 label="Adicionar música", emoji="<:add_music:588172015760965654>",
                                 value=PlayerControls.add_song,
                                 description="Adicionar uma música/playlist na fila."
-                            ),
-                            disnake.SelectOption(
-                                label="Adicionar favorito na fila", emoji="⭐",
-                                value=PlayerControls.enqueue_fav,
-                                description="Adicionar um de seus favoritos na fila."
                             ),
                             disnake.SelectOption(
                                 label="Adicionar nos seus favoritos", emoji="💗",
@@ -2624,7 +2701,7 @@ class LavalinkPlayer(wavelink.Player):
                             disnake.ui.Select(
                                 placeholder="Próximas músicas:",
                                 custom_id="musicplayer_queue_dropdown",
-                                min_values=0, max_values=1,
+                                min_values=0, max_values=1, required = False,
                                 options=[
                                     disnake.SelectOption(
                                         label=fix_characters(f"{n + 1}. {t.single_title}", 47),
@@ -2674,6 +2751,12 @@ class LavalinkPlayer(wavelink.Player):
             self.updating = True
 
             if interaction:
+
+                try:
+                    del data["flags"]
+                except KeyError:
+                    pass
+
                 try:
                     if interaction.response.is_done():
                         await interaction.message.edit(allowed_mentions=self.allowed_mentions, **data)
@@ -2695,8 +2778,10 @@ class LavalinkPlayer(wavelink.Player):
                     self.ignore_np_once = False
 
                     try:
-
                         try:
+                            if data.get("flags"):
+                                data["content"] = None
+                                data["embed"] = None
                             await self.message.edit(allowed_mentions=self.allowed_mentions, **data)
                             await asyncio.sleep(0.5)
                         except asyncio.CancelledError:
@@ -2894,7 +2979,6 @@ class LavalinkPlayer(wavelink.Player):
 
     async def cleanup(self, inter: disnake.MessageInteraction = None):
 
-        self.queue.clear()
         self.played.clear()
 
         try:
@@ -2938,6 +3022,16 @@ class LavalinkPlayer(wavelink.Player):
         if self.guild.me:
 
             self.bot.loop.create_task(self.update_stage_topic(reconnect=False, clear=True))
+
+            try:
+                vc = self.guild.voice_client.channel
+            except:
+                vc = self.last_channel
+
+            try:
+                await self.process_rpc(vc, close=True)
+            except:
+                traceback.print_exc()
 
             if self.static:
 
@@ -3024,6 +3118,10 @@ class LavalinkPlayer(wavelink.Player):
                             func = inter.response.edit_message
                             if not kw and (disnake.utils.utcnow() - datetime.datetime.fromtimestamp(self.uptime, datetime.timezone.utc)).total_seconds() > 15:
                                 kw = self.get_skin(disable=True)
+                                try:
+                                    del kw['flags']
+                                except:
+                                    pass
                         else:
                             try:
                                 func = self.message.edit
@@ -3063,15 +3161,7 @@ class LavalinkPlayer(wavelink.Player):
                 except Exception:
                     traceback.print_exc()
 
-            try:
-                vc = self.guild.voice_client.channel
-            except:
-                vc = self.last_channel
-
-            try:
-                await self.process_rpc(vc, close=True)
-            except:
-                traceback.print_exc()
+        self.queue.clear()
 
     async def auto_skip_track(self):
 
@@ -3573,8 +3663,6 @@ class LavalinkPlayer(wavelink.Player):
             self.track_load_task.cancel()
         except:
             pass
-
-        await self.event_queue.put(None)
 
         try:
             self.event_queue_task.cancel()

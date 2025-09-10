@@ -114,17 +114,12 @@ class EmbedLinkStaticSkin:
                 disnake.ui.Select(
                     placeholder="Mais opções:",
                     custom_id="musicplayer_dropdown_inter",
-                    min_values=0, max_values=1,
+                    min_values=0, max_values=1, required = False,
                     options=[
                         disnake.SelectOption(
                             label="Adicionar música", emoji="<:add_music:588172015760965654>",
                             value=PlayerControls.add_song,
                             description="Adicionar uma música/playlist na fila."
-                        ),
-                        disnake.SelectOption(
-                            label="Adicionar favorito na fila", emoji="⭐",
-                            value=PlayerControls.enqueue_fav,
-                            description="Adicionar um de seus favoritos na fila."
                         ),
                         disnake.SelectOption(
                             label="Tocar do inicio", emoji="⏪",
@@ -181,7 +176,7 @@ class EmbedLinkStaticSkin:
                 disnake.ui.Select(
                     placeholder="Próximas músicas:",
                     custom_id="musicplayer_queue_dropdown",
-                    min_values=0, max_values=1,
+                    min_values=0, max_values=1, required = False,
                     options=[
                         disnake.SelectOption(
                             label=fix_characters(f"{n+1}. {t.single_title}", 47),
@@ -208,15 +203,6 @@ class EmbedLinkStaticSkin:
                     label="Status automático", emoji="📢",
                     value=PlayerControls.set_voice_status,
                     description="Configurar o status automático do canal de voz."
-                )
-            )
-
-        if not player.static and not player.has_thread:
-            data["components"][5].options.append(
-                disnake.SelectOption(
-                    label="Song-Request Thread", emoji="💬",
-                    value=PlayerControls.song_request_thread,
-                    description="Criar uma thread/conversa temporária para pedir músicas usando apenas o nome/link."
                 )
             )
 

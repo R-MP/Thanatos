@@ -11,7 +11,7 @@ from disnake.ext import commands
 
 from utils.music.converters import URL_REG
 from utils.music.errors import parse_error, PoolException
-from utils.others import send_message, CustomContext, string_to_file, paginator
+from utils.others import send_message, CustomContext, string_to_file, paginator, check_cmd
 
 if TYPE_CHECKING:
     from utils.client import BotCore
@@ -160,6 +160,12 @@ class ErrorHandler(commands.Cog):
             traceback.print_exc()
 
     async def do_playcmd(self, ctx: CustomContext):
+
+        if not self.bot.pool.config["ENABLE_SONGREQUEST_MENTION"]:
+            # em testes
+            ctx.bot.dispatch("custom_message", ctx.message)
+            return
+
         query = str(ctx.message.content)
 
         for m in ctx.message.mentions:
@@ -172,6 +178,7 @@ class ErrorHandler(commands.Cog):
             play_cmd = self.bot.get_slash_command("play")
 
             try:
+                await check_cmd(play_cmd, ctx)
                 await play_cmd.callback(
                     inter=ctx, query=query,
                     self=play_cmd.cog, position=0, options=False, force_play="no",

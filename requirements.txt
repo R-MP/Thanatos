@@ -1,8 +1,4 @@
-disnake==2.10.1
-Pillow
-PyNaCl
-openai
-opencv-python
+git+https://github.com/DisnakeDev/disnake.git@6e273fc1bdb7fa317cb68bdbc8d8956ec6aca874
 python-dotenv
 user_agent
 requests>=2.31.0
@@ -15,10 +11,10 @@ aiofiles
 disnake-jishaku
 packaging
 aiosqlite
-yt-dlp[default]>=2025.02.19
+yt-dlp[default]>=2025.08.11
 tornado>=6.4.2
 emoji
-urllib3>=2.2.2
+urllib3>=2.5.0
 async-timeout
 cachetools
 regex

@@ -18,6 +18,7 @@ from disnake.ext import commands
 from utils.client import BotCore
 from utils.db import DBModel
 from utils.music.checks import can_connect, can_send_message
+from utils.music.errors import PoolException
 from utils.music.filters import AudioFilter
 from utils.music.models import LavalinkPlayer
 from utils.others import send_idle_embed, CustomContext
@@ -193,8 +194,11 @@ class PlayerSession(commands.Cog):
 
         with suppress(AttributeError):
             data["extra_info"] = player.extra_info
+        with suppress(AttributeError):
             data["live_lyrics_status"] = player.live_lyrics_enabled
+        with suppress(AttributeError):
             data["current_encoded"] = player.current_encoded
+        with suppress(AttributeError):
             data["command_log_list"] = player.command_log_list
 
         if player.static:
@@ -483,8 +487,8 @@ class PlayerSession(commands.Cog):
                               f"channel_id: {text_channel.id} | message_id {data['message']}")
 
                 if not voice_channel or not voice_channel.permissions_for(guild.me).connect:
-                    if data["voice_channel"] != (vc:=data.get("last_voice_channel_id", data["voice_channel"])):
-                        voice_channel=vc
+                    if data["voice_channel"] != (vc_id:=data.get("last_voice_channel_id", data["voice_channel"])):
+                        voice_channel=self.bot.get_channel(int(vc_id))
                         try:
                             del data["voice_state"]
                         except:
@@ -523,6 +527,8 @@ class PlayerSession(commands.Cog):
                             await send_idle_embed(text_channel, bot=self.bot, text=msg)
                     except Exception:
                         traceback.print_exc()
+                    if isinstance(e, PoolException):
+                        await self.delete_data(guild.id)
                     return
 
                 while True:

@@ -125,17 +125,12 @@ class ClassicSkin:
             disnake.ui.Select(
                 placeholder="Mais opções:",
                 custom_id="musicplayer_dropdown_inter",
-                min_values=0, max_values=1,
+                min_values=0, max_values=1, required=False,
                 options=[
                     disnake.SelectOption(
                         label="Adicionar música", emoji="<:add_music:588172015760965654>",
                         value=PlayerControls.add_song,
                         description="Adicionar uma música/playlist na fila."
-                    ),
-                    disnake.SelectOption(
-                        label="Adicionar favorito na fila", emoji="⭐",
-                        value=PlayerControls.enqueue_fav,
-                        description="Adicionar um de seus favoritos na fila."
                     ),
                     disnake.SelectOption(
                         label="Adicionar nos seus favoritos", emoji="💗",
@@ -183,11 +178,6 @@ class ClassicSkin:
                         description="Ativar/desativar o scrobble/registro de músicas na sua conta do last.fm."
                     ),
                     disnake.SelectOption(
-                        label="Last.fm scrobble", emoji="🔄",
-                        value=PlayerControls.autoplay,
-                        description="Ativar/desativar o scrobble/registro de músicas na sua conta do last.fm."
-                    ),
-                    disnake.SelectOption(
                         label= ("Desativar" if player.restrict_mode else "Ativar") + " o modo restrito", emoji="🔐",
                         value=PlayerControls.restrict_mode,
                         description="Apenas DJ's/Staff's podem usar comandos restritos."
@@ -224,7 +214,7 @@ class ClassicSkin:
                 )
             )
 
-        if not player.static and not player.has_thread:
+        if not player.has_thread:
             data["components"][5].options.append(
                 disnake.SelectOption(
                     label="Song-Request Thread", emoji="💬",
