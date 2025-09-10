@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
+.logs/
 logs/
 .vscode/
 .idea/
@@ -142,6 +142,40 @@ discloud.txt
 .classpath
 .project
 *.jar
+*.zip
+*.rar
+*.7z
+/.config
+/poetry.lock
+/lavalink.ini
 database.json
 /index.html
 /local_dbs/
+/local_database/
+application.yml
+.local/
+.player_sessions/
+.jabba/
+/auto_lavalink.ini
+/.test/
+/.local_database_sqlite
+/.db_cache/
+/.app_commands_sync_data/
+/.gitbak/
+/.tempjar/
+/emojis.json
+ai_prompt.txt
+/.spotify_cache.json
+/guild_bots.json
+/modules_dev/
+/.tmp/
+/.deployed
+/.lastfm_cache
+/.ytdl_cache/
+/.ytdl_cookie
+
+# g4f cookies
+/har_and_cookies/
+/ai_extensions/
+/dev_stuffs/
+/dev/
