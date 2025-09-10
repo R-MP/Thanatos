@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-from typing import Union
-
 from wavelink import WavelinkException
+from typing import Union
 
 
 class InvalidFilterArgument(WavelinkException):

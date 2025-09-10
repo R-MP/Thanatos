@@ -1,31 +1,12 @@
-git+https://github.com/DisnakeDev/disnake.git@6e273fc1bdb7fa317cb68bdbc8d8956ec6aca874
+disnake==2.3.0
+git+https://github.com/zRitsu/Wavelink.git@b7921d7fe3defb676d0a228994647f66a3216210
 python-dotenv
-user_agent
-requests>=2.31.0
+spotipy
+requests
 humanize
+tornado
 motor
-tinymongo
-dnspython>=2.6.1
-psutil
-aiofiles
+dnspython
+fake-useragent
 disnake-jishaku
-packaging
-aiosqlite
-yt-dlp[default]>=2025.08.11
-tornado>=6.4.2
-emoji
-urllib3>=2.5.0
-async-timeout
-cachetools
-regex
-syncedlyrics
-pylrc
-rapidfuzz
-nodriver==0.32
-undetected-chromedriver==3.5.5
-ruamel.yaml
-nest_asyncio
-setuptools>=70.0.0; python_version>='3.12'
-curl_cffi
-audioop-lts; python_version>='3.13'
-uvloop; sys_platform != 'win32'
+psutil

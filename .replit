@@ -1,20 +1,10 @@
-run = "bash ./deploy_handlers/replit.sh"
-entrypoint = "README.MD"
-modules = ["python-3.10"]
+language="python3"
 
-[nix]
-channel = "stable-23_05"
+run = """[ -z "$IS_SOURCE" ] || { python3 preview.py; kill "$PPID"; exit 1; }
+[ -e pom.xml ] && rm pom.xml
+pip3 install -r requirements.txt
+clear
+python3 main.py"""
 
-[unitTest]
-language = "python3"
-
-[gitHubImport]
-requiredFiles = [".replit", "replit.nix"]
-
-[deployment]
-run = ["bash", "./deploy_handlers/replit.sh"]
-deploymentTarget = "cloudrun"
-
-[[ports]]
-localPort = 80
-externalPort = 80
+[packager]
+ignoredPackages=["discord.py", "discord"]
