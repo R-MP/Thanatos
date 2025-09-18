@@ -95,6 +95,12 @@ class CustomContext(commands.Context):
         except:
             pass
 
+        try:
+            if not kwargs["view"]:
+                del kwargs["view"]
+        except KeyError:
+            pass
+
         #if self.channel.permissions_for(self.guild.me).read_message_history:
         #    return await super().reply(fail_if_not_exists=False, content=content, **kwargs)
 
@@ -109,6 +115,12 @@ class CustomContext(commands.Context):
         try:
             kwargs.pop("fail_if_not_exists")
         except:
+            pass
+
+        try:
+            if not kwargs["view"]:
+                del kwargs["view"]
+        except KeyError:
             pass
 
         if not self.channel.permissions_for(self.guild.me).read_message_history:
@@ -296,6 +308,12 @@ async def send_message(
     try:
         if not kwargs["components"]:
             kwargs["components"] = []
+    except KeyError:
+        pass
+
+    try:
+        if not kwargs["view"]:
+            del kwargs["view"]
     except KeyError:
         pass
 
@@ -525,9 +543,9 @@ async def pin_list(inter, query: str, *, prefix=""):
                    if not query or query.lower() in pinname.lower()][:20])
 
 
-def paginator(txt: str):
+def paginator(txt: str, max_size=1910):
     pages = commands.Paginator(prefix=None, suffix=None)
-    pages.max_size = 1910
+    pages.max_size = max_size
     for line in txt.splitlines():
         if len(line) >= pages.max_size - 3:
             l = [(line[i:i + pages.max_size - 3]) for i in range(0, len(line), pages.max_size - 3)]
